@@ -1141,8 +1141,8 @@
                     <p className="text-xl md:text-2xl font-handwriting text-brand-light text-center">
                         (Geser-geser foto dan catatannya ya!)
                     </p>
-                    <p className="mt-6 text-sm text-gray-400 shake-hint flex items-center gap-2">
-                        📱 Coba goyangkan HP-mu!
+                    <p className="mt-8 text-sm md:text-base text-gray-400 shake-hint flex items-center justify-center gap-2 max-w-lg text-center bg-black/30 px-6 py-3 rounded-full border border-white/10">
+                        📱 Goyangkan HP-mu untuk menyusun semua memori ini dengan rapih ke bawah!
                     </p>
                 </div>
             );
@@ -1205,6 +1205,14 @@
             const [highestZIndex, setHighestZIndex] = useState(20);
             const [selectedMedia, setSelectedMedia] = useState(null);
             const [selectedLetter, setSelectedLetter] = useState(null);
+
+            // State untuk fitur Goyang -> Rapih (Shake-to-Organize)
+            const [isOrganized, setIsOrganized] = useState(false);
+
+            // Dengarkan goyangan HP (Shake)
+            useShake(() => {
+                if(isStarted) setIsOrganized(true);
+            });
 
             const tilt = useDeviceOrientation();
 
