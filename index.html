@@ -925,8 +925,8 @@
         };
 
         // Komponen Polaroid yang bisa di-drag
-        const DraggablePolaroid = ({ item, defaultPos, defaultRot, zIndex, bringToFront, onClickItem, tilt }) => {
-            const { position, isDragging, handlers } = useDraggable(defaultPos, bringToFront);
+        const DraggablePolaroid = ({ item, defaultPos, defaultRot, zIndex, bringToFront, onClickItem, tilt, isOrganized, organizedPos }) => {
+            const { position, isDragging, handlers, transitionStyle } = useDraggable(defaultPos, bringToFront, isOrganized, organizedPos);
 
             // Efek Parallax Gyroscope
             const parallaxX = tilt.x * 20; // Sensitivitas
