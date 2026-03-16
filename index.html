@@ -613,7 +613,7 @@
             useEffect(() => {
                 let lastTime = new Date().getTime();
                 let lastX = null, lastY = null, lastZ = null;
-                const threshold = 15; // Sensitivitas goncangan
+                const threshold = 1500; // Sensitivitas goncangan (dinaikkan agar tidak terlalu sensitif)
                 
                 const handleMotion = (e) => {
                     const current = e.accelerationIncludingGravity;
@@ -624,9 +624,11 @@
                         const diffTime = currentTime - lastTime;
                         lastTime = currentTime;
                         
-                        const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
-                        if (speed > threshold) {
-                            onShake();
+                        if (lastX !== null) {
+                            const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
+                            if (speed > threshold) {
+                                onShake();
+                            }
                         }
                         lastX = current.x; lastY = current.y; lastZ = current.z;
                     }
@@ -696,7 +698,8 @@
                     onPointerMove: handlePointerMove,
                     onPointerUp: handlePointerUp,
                     onPointerCancel: handlePointerUp
-                }
+                },
+                transitionStyle: { transition: isDragging ? 'none' : 'all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }
             };
         };
 
@@ -932,19 +935,20 @@
             return (
                 <div
                     {...handlers}
-                    className={`absolute draggable flex flex-col items-center p-3 pb-8 md:p-4 md:pb-12 bg-paper shadow-xl rounded-sm transform transition-transform duration-100 ease-out hover:shadow-2xl`}
+                    className={`absolute draggable flex flex-col items-center p-3 pb-8 md:p-4 md:pb-12 bg-paper shadow-xl rounded-sm hover:shadow-2xl`}
                     style={{
                         left: position.x,
                         top: position.y,
                         // Gabungkan rotasi default dengan skala saat di-drag dan efek parallax
                         transform: `
                             translate(${parallaxX}px, ${parallaxY}px)
-                            rotate(${defaultRot}deg) 
+                            rotate(${isOrganized ? 0 : defaultRot}deg) 
                             scale(${isDragging ? 1.05 : 1})
                         `,
-                        zIndex: zIndex,
+                        zIndex: isOrganized ? zIndex + 20 : zIndex,
                         width: window.innerWidth > 768 ? '250px' : '160px', // Responsif ukuran polaroid
-                        border: '1px solid #e5e7eb'
+                        border: '1px solid #e5e7eb',
+                        ...transitionStyle
                     }}
                     onDoubleClick={() => onClickItem(item)} // Double click untuk buka modal penuh
                 >
@@ -1056,7 +1060,7 @@
             return (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
                     <div
-                        className="bg-paper text-gray-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-12 rounded-lg shadow-[0_0_50px_rgba(251,113,133,0.3)] relative animate-fade-in-up"
+                        className="bg-paper text-gray-800 w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 md:p-12 rounded-lg shadow-[0_0_50px_rgba(251,113,133,0.3)] relative animate-fade-in-up md:max-h-[85vh]"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Motif Kertas Surat */}
