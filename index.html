@@ -1135,7 +1135,7 @@
                     ref={quoteRef}
                     className={`scroll-reveal-quote w-full flex flex-col items-center justify-center py-20 px-6 ${isVisible ? (isBehind ? 'visible behind' : 'visible') : ''}`}
                 >
-                    <h2 className="text-3xl md:text-5xl font-bold text-white/70 text-center max-w-3xl leading-relaxed mb-6">
+                    <h2 className="text-3xl md:text-5xl font-bold text-brand text-center max-w-3xl leading-relaxed mb-6 drop-shadow-[0_0_15px_rgba(251,113,133,0.5)]">
                         6 tahun penuh cerita, dan meja ini masih berantakan persis seperti pikiran mas kalau lagi mikirin kamu.
                     </h2>
                     <p className="text-xl md:text-2xl font-handwriting text-brand-light text-center">
@@ -1347,7 +1347,14 @@
 
                     {/* === BAGIAN 2: KANVAS MEMORI BERTEBARAN === */}
                     {/* Responsive canvas height */}
-                    <section className="relative w-full overflow-visible" style={{ minHeight: window.innerWidth <= 768 ? '1800px' : '2500px' }}>
+                    <section 
+                        className="relative w-full overflow-visible transition-all duration-1000 ease-in-out" 
+                        style={{ 
+                            minHeight: isOrganized 
+                                ? `${100 + (notesData.length * (window.innerWidth <= 768 ? 160 : 200)) + (galleryData.length * (window.innerWidth <= 768 ? 260 : 350)) + 300}px` 
+                                : (window.innerWidth <= 768 ? '1800px' : '2500px') 
+                        }}
+                    >
 
                         {/* Scroll Reveal Quote - muncul saat di-scroll, lalu perlahan ke belakang */}
                         <ScrollRevealQuote />
