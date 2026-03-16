@@ -613,10 +613,11 @@
             useEffect(() => {
                 let lastTime = new Date().getTime();
                 let lastX = null, lastY = null, lastZ = null;
-                const threshold = 1500; // Sensitivitas goncangan (dinaikkan agar tidak terlalu sensitif)
+                const threshold = 15; // Sensitivitas goncangan
                 
                 const handleMotion = (e) => {
-                    const current = e.accelerationIncludingGravity;
+                    // Gunakan acceleration biasa agar tidak terpengaruh gravitasi konstan
+                    const current = e.acceleration || e.accelerationIncludingGravity;
                     if (!current) return;
                     
                     const currentTime = new Date().getTime();
@@ -1232,13 +1233,16 @@
                 if (isMorphing) return;
                 setIsMorphing(true);
 
-                // Request permission gyroscope
-                const requestGyro = () => {
+                // Request permission gyroscope & accelerometer (wajib untuk iOS 13+)
+                const requestSensors = () => {
                     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                         DeviceOrientationEvent.requestPermission().catch(console.error);
                     }
+                    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                        DeviceMotionEvent.requestPermission().catch(console.error);
+                    }
                 };
-                requestGyro();
+                requestSensors();
 
                 // Setelah animasi smiley selesai (2s), masuk ke halaman utama
                 setTimeout(() => {
