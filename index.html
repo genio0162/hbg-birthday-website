@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy 26th Birthday, My Love 💖</title>
+
+    <!-- Google Fonts: Fredoka (Bubble / Rounded Clean Font) & Caveat (Handwriting) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Fredoka:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel CDN untuk JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Konfigurasi Tailwind & Custom CSS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'bubble': ['Fredoka', 'sans-serif'],
+                        'handwriting': ['Caveat', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#ffe4e6', // Rose 100
+                            DEFAULT: '#fb7185', // Rose 400
+                            dark: '#e11d48', // Rose 600
+                        },
+                        paper: '#fdfbf7', // Warna kertas polaroid/surat
+                        note: '#fef3c7', // Warna sticky note kuning pastel
+                    },
+                    animation: {
+                        'float-slow': 'float 8s ease-in-out infinite',
+                        'float-medium': 'float 6s ease-in-out infinite',
+                        'float-fast': 'float 4s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                        'typewriter': 'typing 3s steps(40, end)',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '33%': { transform: 'translateY(-15px) rotate(2deg)' },
+                            '66%': { transform: 'translateY(10px) rotate(-2deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(251, 113, 133, 0.4)' },
+                            '50%': { boxShadow: '0 0 30px rgba(251, 113, 133, 0.8)' },
+                        },
+                        typing: {
+                            from: { width: '0' },
+                            to: { width: '100%' }
+                        },
+                        fadeInUp: {
+                            from: { opacity: '0', transform: 'translateY(30px)' },
+                            to: { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* CSS Reset & Global Layout */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            /* Hitam pekat */
+            color: white;
+            overflow-x: hidden;
+            font-family: 'Fredoka', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: pan-y;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #fb7185, #c026d3);
+            border-radius: 10px;
+        }
+
+        /* Container WebGL (Three.js) */
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Smiley Button Animation - Button tetap bentuknya */
+        .smiley-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            min-width: 200px;
+            min-height: 56px;
+        }
+
+        .smiley-btn .btn-text {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .smiley-btn.morphing .btn-text {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        .smiley-btn.morphing {
+            box-shadow: 0 0 50px rgba(251, 113, 133, 0.8) !important;
+        }
+
+        .smiley-face {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.2s;
+        }
+
+        .smiley-btn.morphing .smiley-face {
+            opacity: 1;
+        }
+
+        .smiley-eye {
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 35%;
+            animation: eyeBlink 1.5s ease-in-out infinite;
+        }
+
+        .smiley-eye.left {
+            left: 32%;
+        }
+
+        .smiley-eye.right {
+            right: 32%;
+        }
+
+        .smiley-mouth {
+            position: absolute;
+            bottom: 28%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0px;
+            height: 0px;
+            border-bottom: 3px solid #fff;
+            border-radius: 0 0 50% 50%;
+            animation: mouthSmile 1.2s ease-out 0.4s forwards;
+        }
+
+        @keyframes eyeBlink {
+
+            0%,
+            40%,
+            60%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            50% {
+                transform: scaleY(0.1);
+            }
+        }
+
+        @keyframes mouthSmile {
+            0% {
+                width: 0px;
+                height: 0px;
+                border-radius: 0;
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            50% {
+                width: 20px;
+                height: 6px;
+                border-radius: 0 0 40% 40%;
+            }
+
+            80% {
+                width: 30px;
+                height: 10px;
+                border-radius: 0 0 50% 50%;
+            }
+
+            100% {
+                width: 35px;
+                height: 12px;
+                border-radius: 0 0 50% 50%;
+            }
+        }
+
+        @keyframes smileyWiggle {
+
+            0%,
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            20% {
+                transform: scale(1.05) rotate(-2deg);
+            }
+
+            40% {
+                transform: scale(1.08) rotate(2deg);
+            }
+
+            60% {
+                transform: scale(1.05) rotate(-1deg);
+            }
+
+            80% {
+                transform: scale(1.03) rotate(1deg);
+            }
+        }
+
+        .smiley-wiggle {
+            animation: smileyWiggle 0.8s ease-in-out 0.8s;
+        }
+
+        /* Elevasi Z-Index untuk React Root agar di atas WebGL */
+        #root {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Utilitas Drag & Drop Mobile */
+        .draggable {
+            touch-action: none;
+            /* Mencegah layar ter-scroll saat elemen sedang digeser */
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: grab;
+            will-change: transform;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        /* Efek Kaca Premium (Glassmorphism) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Desain Polaroid */
+        .polaroid {
+            background: #fff;
+            padding: 12px 12px 30px 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            transition: box-shadow 0.3s;
+        }
+
+        .polaroid img,
+        .polaroid video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 2px;
+            pointer-events: none;
+            /* Cegah drag gambar bawaan browser */
+        }
+
+        /* Desain Kertas Catatan / Sticky Note */
+        .sticky-note {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 20px;
+            box-shadow: 2px 4px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 2px 15px 5px 20px;
+            /* Sedikit tidak beraturan agar terlihat natural */
+            color: #333;
+            font-family: 'Caveat', cursive;
+        }
+
+        .sticky-note::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animasi Transisi Halus */
+        .transition-transform {
+            transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        /* Sparkles / Confetti Effect */
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            animation: sparkleAnim 1s ease-out forwards;
+            z-index: 9999;
+        }
+
+        @keyframes sparkleAnim {
+            0% {
+                transform: scale(0) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.5) translateY(-50px) rotate(90deg);
+                opacity: 0;
+            }
+        }
+
+        /* Animasi Partikel Hati di Tombol Mulai */
+        @keyframes floatHeart {
+            0% {
+                transform: translate(0, 0) scale(0.5) rotate(-15deg);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translate(calc(-15px + 30px * var(--dir)), -60px) scale(1.2) rotate(15deg);
+                opacity: 0;
+            }
+        }
+
+        .mini-heart {
+            position: absolute;
+            bottom: 50%;
+            animation: floatHeart 2.5s infinite ease-in;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scroll Reveal Quote */
+        .scroll-reveal-quote {
+            position: sticky;
+            top: 30vh;
+            z-index: 5;
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            pointer-events: none;
+        }
+        .scroll-reveal-quote.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .scroll-reveal-quote.behind {
+            z-index: -1;
+            opacity: 0.15;
+            transition: opacity 1.5s ease, z-index 0s;
+        }
+
+        /* Envelope Animation */
+        .envelope-wrapper {
+            perspective: 800px;
+            cursor: pointer;
+        }
+        .envelope-body {
+            position: relative;
+            width: 120px; height: 90px;
+            background: linear-gradient(135deg, #ffe4e6, #fecdd3);
+            border: 2px solid #fb7185;
+            border-radius: 6px;
+            overflow: visible;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .envelope-body:hover {
+            box-shadow: 0 0 30px rgba(251, 113, 133, 0.6);
+            transform: scale(1.05);
+        }
+        .envelope-flap {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, #fda4af, #ffe4e6);
+            border-bottom: 2px solid #fb7185;
+            transform-origin: top center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 3;
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
+        }
+        .envelope-wrapper.opened .envelope-flap {
+            transform: rotateX(-180deg);
+        }
+        .envelope-letter {
+            position: absolute;
+            bottom: 5px; left: 10%; right: 10%;
+            height: 70%;
+            background: #fff;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transform: translateY(0);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .envelope-wrapper.opened .envelope-letter {
+            transform: translateY(-60px);
+        }
+        .envelope-heart {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 4;
+            transition: opacity 0.3s;
+        }
+        .envelope-wrapper.opened .envelope-heart {
+            opacity: 0;
+        }
+
+        /* Shake hint animation */
+        @keyframes shakeHint {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            10% { transform: translateX(-5px) rotate(-2deg); }
+            20% { transform: translateX(5px) rotate(2deg); }
+            30% { transform: translateX(-5px) rotate(-1deg); }
+            40% { transform: translateX(5px) rotate(1deg); }
+            50% { transform: translateX(0) rotate(0); }
+        }
+        .shake-hint { animation: shakeHint 1.5s ease-in-out 2s; }
+    </style>
+</head>
+
+<body>
+    <div id="webgl-container"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // ==========================================
+        // 1. DATA DATABASE (FOTO, VIDEO, SURAT, CATATAN)
+        // ==========================================
+
+        // Data Galeri - Auto-detect semua file di folder memoriez
+        // Fungsi helper untuk mendeteksi tipe file dari nama
+        const getMediaType = (filename) => {
+            const ext = filename.split('.').pop().toLowerCase();
+            const videoExts = ['mp4', 'mov', 'avi', 'webm', 'mkv', '3gp'];
+            const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'heic'];
+            if (videoExts.includes(ext)) return 'video';
+            if (imageExts.includes(ext)) return 'image';
+            return 'image'; // default ke image
+        };
+
+        // Daftar semua file yang ada di folder memoriez (otomatis terbaca apapun namanya)
+        const memoriezFiles = [
+            '0658bf779e49672b72afca8ac12127f0.jpg',
+            '4aed31e80fb999a86fd0f343b1da3cac.jpg',
+            '7d706385858472298bad407c39b6adcb.jpg',
+            '8863fac21fd9c9798c22178e8e522878.jpg',
+            'WhatsApp Image 2025-12-19 at 13.15.59.jpeg',
+            'WhatsApp Image 2025-12-19 at 13.22.26.jpeg',
+            'WhatsApp Image 2025-12-19 at 13.22.27.jpeg',
+        ];
+
+        const memoryCaptions = [
+            'Momen yang tak terlupakan 🤍',
+            '6 tahun, sejuta cerita indah 💕',
+            'Kamu & mas, selalu berdua ❤️',
+            'Senyummu obat segala lelah 😊',
+            'Momen manis kita bersama 💗',
+            'Kenangan indah yang tersimpan 🌸',
+            'Selamanya bersamamu 💖',
+        ];
+
+        const galleryData = memoriezFiles.map((file, idx) => ({
+            id: `p${idx + 1}`,
+            type: getMediaType(file),
+            src: `memoriez/${file}`,
+            caption: memoryCaptions[idx] || `Memori ke-${idx + 1} 💖`
+        }));
+
+        // Data Catatan Kecil (Sticky Notes) yang bertebaran
+        const notesData = [
+            "Kamu itu alasan mas tersenyum setiap pagi. ☀️",
+            "Jangan lupa makan ya cantik! 🍜",
+            "Mas kangen cerewetnya kamu hari ini. 🥺",
+            "Terima kasih udah selalu sabar ngadepin mas.",
+            "Semoga di umur 26 ini, semua mimpimu terwujud. Amin 🙏",
+            "6 tahun bareng kamu, masih kurang. Mau selamanya. 💍",
+            "Maaf kalau mas sering bikin kamu sebel hehe ✌️",
+            "Kamu wanita paling hebat yang pernah mas kenal.",
+            "Gak sabar buat bikin lebih banyak memori sama kamu.",
+            "Jaga kesehatan ya, kamu milik mas seorang! ❤️",
+            "Kalau lagi sedih, inget aja ada mas yang selalu dukung kamu.",
+            "Kamu cantik banget, tau gak sih? 😍",
+            "Cuma kamu yang bisa bikin mas se-bucin ini.",
+            "Selamat menua bersama, sayangku.",
+            "Kamu adalah hari ini dan semua hari esok mas. 💖"
+        ];
+
+        // Data Surat Panjang (Envelopes)
+        const lettersData = [
+            {
+                id: 'l1', title: 'Untukmu yang Genap 26 Tahun',
+                content: 'Hai sayang... Waktu rasanya cepat banget ya berputar. Tiba-tiba kamu udah 26 tahun aja. 6 tahun kita bareng, dari jaman masih saling malu-maluin sampai sekarang udah saling ngerti tanpa harus ngomong. Di ulang tahunmu kali ini, mas cuma mau kamu tau kalau kehadiran mas di sini bukan cuma buat nemenin kamu di saat seneng, tapi juga di titik terendahmu. Kamu itu anugerah terindah yang Tuhan kasih buat mas. Selamat ulang tahun sayangku. Teruslah bersinar.'
+            },
+            {
+                id: 'l2', title: 'Terima Kasih untuk 6 Tahun Kita',
+                content: 'Mas mau ngucapin terima kasih sebanyak-banyaknya. 6 tahun bukan waktu yang sebentar, sayang. Kita udah lewatin segalanya bareng — seneng, sedih, berantem, baikan, jauh, deket. Terima kasih udah milih mas dari sekian banyak orang. Terima kasih udah nerima kurang dan lebih mas. Kadang mas ngerasa beruntung banget bisa disayang sama perempuan sehebat kamu. Jangan pernah berubah ya. Mas akan selalu berusaha jadi yang terbaik buat kamu.'
+            },
+            {
+                id: 'l3', title: 'Janji Masa Depan Kita',
+                content: 'Ngelihat galeri foto kita dari awal jadian 6 tahun lalu sampai sekarang, bikin mas sadar satu hal: mas mau terus ada di foto-fotomu sepuluh, dua puluh, bahkan lima puluh tahun lagi. Kita udah buktiin kalau cinta kita kuat melewati 6 tahun penuh cerita. Sekarang, mas mau buktiin kalau ini baru permulaan. Mari kita hadapi dunia sama-sama. Selamat bertambah usia, calon teman hidup mas. Mari kita wujudkan semua mimpi yang sering kita obrolin sebelum tidur.'
+            }
+        ];
+
+        // ==========================================
+        // 2. KUMPULAN CUSTOM HOOKS (Fisika, Sensor, dll)
+        // ==========================================
+
+        // Hook untuk Gyroscope / Device Orientation (Kemiringan HP)
+        const useDeviceOrientation = () => {
+            const [tilt, setTilt] = useState({ x: 0, y: 0 });
+
+            useEffect(() => {
+                const handleOrientation = (event) => {
+                    // Gamma: Kiri/Kanan (-90 hingga 90) -> Normalisasi ke -1 hingga 1
+                    // Beta: Depan/Belakang (-180 hingga 180) -> Normalisasi ke -1 hingga 1
+                    let x = event.gamma ? event.gamma / 45 : 0;
+                    let y = event.beta ? (event.beta - 45) / 45 : 0;
+
+                    // Batasi nilai ekstrim
+                    x = Math.max(-1, Math.min(1, x));
+                    y = Math.max(-1, Math.min(1, y));
+
+                    setTilt({ x, y });
+                };
+
+                // Desktop fallback menggunakan pergerakan mouse
+                const handleMouseMove = (event) => {
+                    const x = (event.clientX / window.innerWidth - 0.5) * 2;
+                    const y = (event.clientY / window.innerHeight - 0.5) * 2;
+                    setTilt({ x, y });
+                };
+
+                // Cek jika device mendukung orientasi
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+                window.addEventListener('mousemove', handleMouseMove);
+
+                return () => {
+                    window.removeEventListener('deviceorientation', handleOrientation);
+                    window.removeEventListener('mousemove', handleMouseMove);
+                };
+            }, []);
+
+            return tilt;
+        };
+
+        // Hook untuk Drag & Drop Elemen di Canvas
+        const useDraggable = (initialPosition, bringToFront) => {
+            const [position, setPosition] = useState(initialPosition);
+            const [isDragging, setIsDragging] = useState(false);
+            const dragStartRef = useRef({ x: 0, y: 0 });
+            const initialPosRef = useRef(initialPosition);
+
+            const handlePointerDown = (e) => {
+                setIsDragging(true);
+                bringToFront(); // Panggil fungsi dari parent untuk menaikkan z-index
+                e.target.setPointerCapture(e.pointerId);
+
+                // Simpan koordinat awal sentuhan/klik
+                dragStartRef.current = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+                initialPosRef.current = { ...position };
+                e.preventDefault(); // Cegah default behaviour
+            };
+
+            const handlePointerMove = (e) => {
+                if (!isDragging) return;
+
+                // Hitung delta (perubahan posisi)
+                const dx = e.clientX - dragStartRef.current.x;
+                const dy = e.clientY - dragStartRef.current.y;
+
+                setPosition({
+                    x: initialPosRef.current.x + dx,
+                    y: initialPosRef.current.y + dy
+                });
+            };
+
+            const handlePointerUp = (e) => {
+                setIsDragging(false);
+                e.target.releasePointerCapture(e.pointerId);
+            };
+
+            return {
+                position,
+                isDragging,
+                handlers: {
+                    onPointerDown: handlePointerDown,
+                    onPointerMove: handlePointerMove,
+                    onPointerUp: handlePointerUp,
+                    onPointerCancel: handlePointerUp
+                }
+            };
+        };
+
+        // ==========================================
+        // 3. KOMPONEN THREE.JS (Latar Belakang Interaktif)
+        // ==========================================
+        const InteractiveThreeBackground = () => {
+            useEffect(() => {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                document.getElementById('webgl-container').appendChild(renderer.domElement);
+
+                // --- FUNGSI MEMBUAT TEKSTUR HATI (Tanpa File Eksternal) ---
+                const createHeartTexture = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 64; canvas.height = 64;
+                    const ctx = canvas.getContext('2d');
+
+                    // Menggambar bentuk hati menggunakan Bezier Curve di Canvas
+                    ctx.beginPath();
+                    ctx.moveTo(32, 15);
+                    ctx.bezierCurveTo(32, 12, 28, 0, 16, 0);
+                    ctx.bezierCurveTo(0, 0, 0, 24, 0, 24);
+                    ctx.bezierCurveTo(0, 40, 16, 52, 32, 64);
+                    ctx.bezierCurveTo(48, 52, 64, 40, 64, 24);
+                    ctx.bezierCurveTo(64, 24, 64, 0, 48, 0);
+                    ctx.bezierCurveTo(36, 0, 32, 12, 32, 15);
+                    ctx.fillStyle = "#fb7185"; // Warna Pink Tailwind
+                    ctx.fill();
+
+                    const texture = new THREE.CanvasTexture(canvas);
+                    return texture;
+                };
+
+                const heartTexture = createHeartTexture();
+
+                // Membangun Partikel Hati
+                const particlesCount = 200; // Jumlah hati bertebaran
+                const geometry = new THREE.BufferGeometry();
+                const posArray = new Float32Array(particlesCount * 3);
+
+                // Menyimpan data asli untuk efek fisika repulsi (menjauh)
+                const originalPositions = [];
+
+                for (let i = 0; i < particlesCount * 3; i += 3) {
+                    // Posisi acak X, Y, Z
+                    const x = (Math.random() - 0.5) * 40;
+                    const y = (Math.random() - 0.5) * 40;
+                    const z = (Math.random() - 0.5) * 20 - 5;
+
+                    posArray[i] = x;
+                    posArray[i + 1] = y;
+                    posArray[i + 2] = z;
+
+                    originalPositions.push({ x, y, z });
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+                const material = new THREE.PointsMaterial({
+                    size: 0.8,
+                    map: heartTexture,
+                    transparent: true,
+                    opacity: 0.6,
+                    blending: THREE.AdditiveBlending, // Efek bercahaya
+                    depthWrite: false
+                });
+
+                const particlesMesh = new THREE.Points(geometry, material);
+                scene.add(particlesMesh);
+
+                camera.position.z = 10;
+
+                // Variabel Interaksi Mouse/Touch
+                let mouseX = 0;
+                let mouseY = 0;
+                let targetX = 0;
+                let targetY = 0;
+
+                const onDocumentMouseMove = (event) => {
+                    // Normalisasi mouse/touch dari -1 ke 1
+                    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                };
+
+                // Deteksi touch di mobile
+                const onDocumentTouchMove = (event) => {
+                    if (event.touches.length > 0) {
+                        mouseX = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+                        mouseY = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+                    }
+                };
+
+                document.addEventListener('mousemove', onDocumentMouseMove, false);
+                document.addEventListener('touchmove', onDocumentTouchMove, false);
+
+                // Animasi Loop
+                const clock = new THREE.Clock();
+                let animationFrameId;
+
+                const animate = () => {
+                    animationFrameId = requestAnimationFrame(animate);
+                    const elapsedTime = clock.getElapsedTime();
+
+                    // Efek berputar lambat ke seluruh galaksi hati
+                    particlesMesh.rotation.y = elapsedTime * 0.05;
+                    particlesMesh.rotation.x = Math.sin(elapsedTime * 0.1) * 0.1;
+
+                    // Mengambil posisi partikel saat ini
+                    const positions = particlesMesh.geometry.attributes.position.array;
+
+                    // Konversi posisi mouse ke koordinat dunia 3D (perkiraan sederhana)
+                    const vector = new THREE.Vector3(mouseX, mouseY, 0.5);
+                    vector.unproject(camera);
+                    const dir = vector.sub(camera.position).normalize();
+                    const distance = -camera.position.z / dir.z;
+                    const mousePos3D = camera.position.clone().add(dir.multiplyScalar(distance));
+
+                    for (let i = 0; i < particlesCount; i++) {
+                        const i3 = i * 3;
+                        const origX = originalPositions[i].x;
+                        const origY = originalPositions[i].y;
+
+                        // Efek melayang alami (Sinus wave)
+                        let currentX = origX + Math.sin(elapsedTime + i) * 0.5;
+                        let currentY = origY + Math.cos(elapsedTime + i) * 0.5;
+
+                        // Efek Repulsi: Hati menjauh jika didekati mouse/jari
+                        const dx = mousePos3D.x - currentX;
+                        const dy = mousePos3D.y - currentY;
+                        const distToMouse = Math.sqrt(dx * dx + dy * dy);
+
+                        // Radius repulsi = 3 unit. Jika di dalam radius, dorong menjauh
+                        if (distToMouse < 3) {
+                            const force = (3 - distToMouse) / 3; // Kekuatan dorongan
+                            currentX -= (dx / distToMouse) * force * 1.5;
+                            currentY -= (dy / distToMouse) * force * 1.5;
+                        }
+
+                        // Update posisi
+                        positions[i3] = currentX;
+                        positions[i3 + 1] = currentY;
+                    }
+                    particlesMesh.geometry.attributes.position.needsUpdate = true;
+
+                    // Parallax Kamera berdasarkan scroll window
+                    targetY = window.scrollY * 0.002;
+                    camera.position.y += (-targetY - camera.position.y) * 0.05;
+
+                    renderer.render(scene, camera);
+                };
+                animate();
+
+                // Handle Resize Layar
+                const handleResize = () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                };
+                window.addEventListener('resize', handleResize);
+
+                return () => {
+                    window.removeEventListener('resize', handleResize);
+                    document.removeEventListener('mousemove', onDocumentMouseMove);
+                    document.removeEventListener('touchmove', onDocumentTouchMove);
+                    cancelAnimationFrame(animationFrameId);
+                    geometry.dispose();
+                    material.dispose();
+                    renderer.dispose();
+                    const container = document.getElementById('webgl-container');
+                    if (container) container.innerHTML = '';
+                };
+            }, []);
+
+            return null;
+        };
+
+        // ==========================================
+        // 4. KOMPONEN UI ELEMEN INTERAKTIF
+        // ==========================================
+
+        // Sistem Efek Klik (Memunculkan partikel/emoji saat layar diklik)
+        const ClickSparkles = () => {
+            const [sparkles, setSparkles] = useState([]);
+
+            useEffect(() => {
+                const handleClick = (e) => {
+                    // Jangan munculkan sparkle jika mengklik tombol/gambar untuk menghindari polusi visual
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') return;
+
+                    const newSparkle = {
+                        id: Date.now() + Math.random(),
+                        x: e.clientX,
+                        y: e.clientY,
+                        emoji: ['✨', '💖', '🌸', '🌟'][Math.floor(Math.random() * 4)] // Acak emoji
+                    };
+
+                    setSparkles(prev => [...prev, newSparkle]);
+
+                    // Hapus sparkle setelah animasi selesai (1 detik)
+                    setTimeout(() => {
+                        setSparkles(prev => prev.filter(s => s.id !== newSparkle.id));
+                    }, 1000);
+                };
+
+                window.addEventListener('click', handleClick);
+                return () => window.removeEventListener('click', handleClick);
+            }, []);
+
+            return (
+                <>
+                    {sparkles.map(s => (
+                        <div key={s.id} className="sparkle text-2xl" style={{ left: s.x - 15, top: s.y - 15 }}>
+                            {s.emoji}
+                        </div>
+                    ))}
+                </>
+            );
+        };
+
+        // Komponen Polaroid yang bisa di-drag
+        const DraggablePolaroid = ({ item, defaultPos, defaultRot, zIndex, bringToFront, onClickItem, tilt }) => {
+            const { position, isDragging, handlers } = useDraggable(defaultPos, bringToFront);
+
+            // Efek Parallax Gyroscope
+            const parallaxX = tilt.x * 20; // Sensitivitas
+            const parallaxY = tilt.y * 20;
+
+            return (
+                <div
+                    {...handlers}
+                    className={`absolute draggable flex flex-col items-center p-3 pb-8 md:p-4 md:pb-12 bg-paper shadow-xl rounded-sm transform transition-transform duration-100 ease-out hover:shadow-2xl`}
+                    style={{
+                        left: position.x,
+                        top: position.y,
+                        // Gabungkan rotasi default dengan skala saat di-drag dan efek parallax
+                        transform: `
+                            translate(${parallaxX}px, ${parallaxY}px)
+                            rotate(${defaultRot}deg) 
+                            scale(${isDragging ? 1.05 : 1})
+                        `,
+                        zIndex: zIndex,
+                        width: window.innerWidth > 768 ? '250px' : '160px', // Responsif ukuran polaroid
+                        border: '1px solid #e5e7eb'
+                    }}
+                    onDoubleClick={() => onClickItem(item)} // Double click untuk buka modal penuh
+                >
+                    {/* Pin Tape Dekorasi */}
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-16 h-6 bg-white/50 backdrop-blur-md rotate-[-2deg] shadow-sm z-10" style={{ border: '1px solid rgba(0,0,0,0.05)' }}></div>
+
+                    <div className="w-full aspect-square bg-gray-200 overflow-hidden mb-3 relative pointer-events-none">
+                        {item.type === 'image' ? (
+                            <img src={item.src} alt="Memory" className="w-full h-full object-cover" onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=400&auto=format&fit=crop'} />
+                        ) : (
+                            <>
+                                <video src={item.src} className="w-full h-full object-cover" loop muted autoPlay playsInline />
+                                <div className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    <p className="font-handwriting text-lg md:text-xl text-gray-800 text-center leading-tight pointer-events-none w-full px-2">
+                        {item.caption}
+                    </p>
+                </div>
+            );
+        };
+
+        // Komponen Sticky Note yang bisa di-drag
+        const DraggableNote = ({ text, defaultPos, defaultRot, zIndex, bringToFront, tilt }) => {
+            const { position, isDragging, handlers } = useDraggable(defaultPos, bringToFront);
+
+            // Parallax lebih kuat untuk objek kecil agar terasa dimensi kedalamannya
+            const parallaxX = tilt.x * 40;
+            const parallaxY = tilt.y * 40;
+
+            return (
+                <div
+                    {...handlers}
+                    className="absolute draggable sticky-note text-xl md:text-2xl text-center flex items-center justify-center transition-transform duration-100 ease-out hover:shadow-xl"
+                    style={{
+                        left: position.x,
+                        top: position.y,
+                        transform: `
+                            translate(${parallaxX}px, ${parallaxY}px)
+                            rotate(${defaultRot}deg) 
+                            scale(${isDragging ? 1.1 : 1})
+                        `,
+                        zIndex: zIndex,
+                        width: window.innerWidth > 768 ? '200px' : '140px',
+                        minHeight: window.innerWidth > 768 ? '150px' : '120px'
+                    }}
+                >
+                    <span className="pointer-events-none leading-relaxed">{text}</span>
+                </div>
+            );
+        };
+
+        // Komponen Amplop Surat - Realistis dengan animasi buka tutup
+        const FloatingEnvelope = ({ letter, delay, onClick }) => {
+            const [isOpened, setIsOpened] = useState(false);
+            const timeoutRef = useRef(null);
+
+            const handleClick = () => {
+                if (isOpened) return;
+                setIsOpened(true);
+                // Tunggu animasi amplop terbuka + surat keluar, lalu buka modal
+                timeoutRef.current = setTimeout(() => {
+                    onClick(letter);
+                    // Reset setelah modal ditutup nanti
+                    setTimeout(() => setIsOpened(false), 500);
+                }, 1200);
+            };
+
+            return (
+                <div
+                    className="flex flex-col items-center justify-center animate-float-medium"
+                    style={{ animationDelay: `${delay}s` }}
+                >
+                    <div className={`envelope-wrapper ${isOpened ? 'opened' : ''}`} onClick={handleClick}>
+                        <div className="envelope-body md:w-[160px] md:h-[120px]">
+                            {/* Tutup amplop (flap) */}
+                            <div className="envelope-flap"></div>
+                            {/* Surat di dalam */}
+                            <div className="envelope-letter">
+                                <svg className="text-brand-dark w-4 h-4 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                    <line x1="4" y1="12" x2="16" y2="12"></line>
+                                    <line x1="4" y1="16" x2="12" y2="16"></line>
+                                </svg>
+                            </div>
+                            {/* Ikon hati di tengah */}
+                            <div className="envelope-heart">
+                                <svg className="text-brand w-8 h-8 md:w-10 md:h-10 animate-pulse" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <span className="mt-4 bg-black/40 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs md:text-sm border border-white/20">
+                        {isOpened ? '✨ Membuka...' : 'Ketuk untuk buka'}
+                    </span>
+                </div>
+            );
+        };
+
+        // Modal Pembaca Surat (Typewriter Effect)
+        const LetterModal = ({ letter, onClose }) => {
+            if (!letter) return null;
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
+                    <div
+                        className="bg-paper text-gray-800 w-full max-w-2xl p-8 md:p-12 rounded-lg shadow-[0_0_50px_rgba(251,113,133,0.3)] relative overflow-hidden animate-fade-in-up"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Motif Kertas Surat */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #fb7185 31px, #fb7185 32px)', backgroundPositionY: '40px' }}></div>
+
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-brand transition-colors p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+
+                        <h2 className="font-bubble text-3xl text-brand-dark mb-6 relative z-10 border-b-2 border-brand-light pb-2 inline-block">
+                            {letter.title}
+                        </h2>
+
+                        {/* Konten Surat - Font Tulisan Tangan */}
+                        <div className="font-handwriting text-2xl md:text-3xl leading-loose relative z-10 whitespace-pre-line text-gray-700">
+                            {letter.content}
+                        </div>
+
+                        <div className="mt-12 text-right relative z-10">
+                            <p className="font-bubble text-gray-400 text-sm">Dengan cinta,</p>
+                            <p className="font-handwriting text-3xl text-brand mt-1">Mas</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Modal Lightbox Foto/Video
+        const MediaModal = ({ item, onClose }) => {
+            if (!item) return null;
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" onClick={onClose}>
+                    <button onClick={onClose} className="absolute top-6 right-6 text-white hover:text-brand bg-white/10 rounded-full p-2 z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+
+                    <div className="relative max-w-5xl w-full flex flex-col items-center" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 bg-white rounded-md shadow-2xl rotate-1">
+                            {item.type === 'image' ? (
+                                <img src={item.src} alt={item.caption} className="max-h-[70vh] w-auto object-contain rounded-sm" onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800&auto=format&fit=crop'} />
+                            ) : (
+                                <video src={item.src} controls autoPlay className="max-h-[70vh] max-w-full rounded-sm" />
+                            )}
+                            <p className="font-handwriting text-3xl text-gray-800 text-center mt-6 mb-2">{item.caption}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        // Komponen Quote yang muncul saat scroll lalu perlahan ke belakang
+        const ScrollRevealQuote = () => {
+            const quoteRef = useRef(null);
+            const [isVisible, setIsVisible] = useState(false);
+            const [isBehind, setIsBehind] = useState(false);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        if (entry.isIntersecting) {
+                            setIsVisible(true);
+                            // Setelah 3 detik tampil, perlahan pindah ke belakang
+                            setTimeout(() => {
+                                setIsBehind(true);
+                            }, 3000);
+                        }
+                    },
+                    { threshold: 0.3 }
+                );
+
+                if (quoteRef.current) observer.observe(quoteRef.current);
+                return () => observer.disconnect();
+            }, []);
+
+            return (
+                <div
+                    ref={quoteRef}
+                    className={`scroll-reveal-quote w-full flex flex-col items-center justify-center py-20 px-6 ${isVisible ? (isBehind ? 'visible behind' : 'visible') : ''}`}
+                >
+                    <h2 className="text-3xl md:text-5xl font-bold text-white/70 text-center max-w-3xl leading-relaxed mb-6">
+                        6 tahun penuh cerita, dan meja ini masih berantakan persis seperti pikiran mas kalau lagi mikirin kamu.
+                    </h2>
+                    <p className="text-xl md:text-2xl font-handwriting text-brand-light text-center">
+                        (Geser-geser foto dan catatannya ya!)
+                    </p>
+                    <p className="mt-6 text-sm text-gray-400 shake-hint flex items-center gap-2">
+                        📱 Coba goyangkan HP-mu!
+                    </p>
+                </div>
+            );
+        };
+
+        // Komponen Audio Player Bulat
+        const AudioBGM = ({ isStarted }) => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const audioRef = useRef(null);
+
+            useEffect(() => {
+                // Background music menggunakan file lokal milikmu (pastikan file bgm.mp3 ada di folder yang sama)
+                audioRef.current = new Audio('bgm.mp3');
+                audioRef.current.loop = true;
+                audioRef.current.volume = 0.4; // Volume diturunkan sedikit agar lebih kalem dan tidak mengganggu
+            }, []);
+
+            // Mulai mainkan musik ketika user klik "Buka Surat" di awal
+            useEffect(() => {
+                if (isStarted && audioRef.current) {
+                    audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log("Autoplay blocked"));
+                }
+            }, [isStarted]);
+
+            const togglePlay = () => {
+                if (isPlaying) audioRef.current.pause();
+                else audioRef.current.play();
+                setIsPlaying(!isPlaying);
+            };
+
+            if (!isStarted) return null;
+
+            return (
+                <button
+                    onClick={togglePlay}
+                    className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full glass-panel flex items-center justify-center text-brand-light hover:scale-110 hover:bg-white/10 transition-all shadow-[0_0_15px_rgba(251,113,133,0.3)] backdrop-blur-xl border border-white/20"
+                >
+                    {isPlaying ? (
+                        // Icon Pause & Sound wave animasi
+                        <div className="flex items-center gap-1">
+                            <div className="w-1 h-4 bg-brand-light rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                            <div className="w-1 h-6 bg-brand-light rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-1 h-4 bg-brand-light rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                    ) : (
+                        // Icon Play
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    )}
+                </button>
+            );
+        };
+
+
+        // ==========================================
+        // 5. HALAMAN UTAMA (APP) & STRUKTUR HALAMAN
+        // ==========================================
+        const App = () => {
+            const [isStarted, setIsStarted] = useState(false);
+            const [isMorphing, setIsMorphing] = useState(false); // Animasi smiley
+            const [highestZIndex, setHighestZIndex] = useState(20);
+            const [selectedMedia, setSelectedMedia] = useState(null);
+            const [selectedLetter, setSelectedLetter] = useState(null);
+
+            const tilt = useDeviceOrientation();
+
+            const bringToFront = useCallback(() => {
+                setHighestZIndex(prev => prev + 1);
+            }, []);
+
+            // Handler tombol Buka Sekarang dengan animasi smiley
+            const handleOpenClick = () => {
+                if (isMorphing) return;
+                setIsMorphing(true);
+
+                // Request permission gyroscope
+                const requestGyro = () => {
+                    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission().catch(console.error);
+                    }
+                };
+                requestGyro();
+
+                // Setelah animasi smiley selesai (2s), masuk ke halaman utama
+                setTimeout(() => {
+                    setIsStarted(true);
+                }, 2000);
+            };
+
+            // Generate posisi awal acak untuk Galeri Polaroid
+            const initialGalleryLayout = useMemo(() => {
+                const w = window.innerWidth;
+                const isMobile = w <= 768;
+                const h = isMobile ? 1200 : 2000;
+                return galleryData.map(item => ({
+                    ...item,
+                    initialPos: {
+                        x: Math.max(10, Math.random() * (w - (isMobile ? 150 : 200))),
+                        y: Math.random() * h
+                    },
+                    initialRot: (Math.random() - 0.5) * 40,
+                    zIndex: Math.floor(Math.random() * 10) + 20
+                }));
+            }, []);
+
+            // Generate posisi awal acak untuk Catatan
+            const initialNotesLayout = useMemo(() => {
+                const w = window.innerWidth;
+                const isMobile = w <= 768;
+                const h = isMobile ? 1200 : 2000;
+                return notesData.map((text, idx) => ({
+                    id: `note-${idx}`,
+                    text,
+                    initialPos: {
+                        x: Math.max(10, Math.random() * (w - (isMobile ? 130 : 160))),
+                        y: Math.random() * h
+                    },
+                    initialRot: (Math.random() - 0.5) * 30,
+                    zIndex: Math.floor(Math.random() * 10) + 10
+                }));
+            }, []);
+
+            // --- LAYAR AWAL (PRELOADER & PERMISSION SCREEN) ---
+            if (!isStarted) {
+                return (
+                    <div className="fixed inset-0 flex flex-col items-center justify-center z-[200] px-6 text-center" style={{ background: '#000' }}>
+                        <div className="w-24 h-24 mb-8 text-brand animate-pulse-glow">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                        </div>
+                        <h1 className="font-bubble text-3xl md:text-5xl text-white mb-4">Ada paket ayangkkooi kado ultah...</h1>
+                        <p className="text-gray-400 mb-12 text-sm md:text-base max-w-md">
+                            Website ini menggunakan musik dan sensor kemiringan layar untuk pengalaman terbaik. Pastikan volume HP-mu menyala.
+                        </p>
+                        <div className="relative inline-block">
+                            {/* Partikel Love Imut */}
+                            <span className="mini-heart text-xl" style={{ left: '10%', animationDelay: '0.1s', '--dir': 0.5 }}>💖</span>
+                            <span className="mini-heart text-sm" style={{ left: '30%', animationDelay: '0.8s', '--dir': -1 }}>✨</span>
+                            <span className="mini-heart text-lg" style={{ left: '50%', animationDelay: '0.4s', '--dir': 1 }}>💖</span>
+                            <span className="mini-heart text-sm" style={{ left: '70%', animationDelay: '1.2s', '--dir': -0.5 }}>🌸</span>
+                            <span className="mini-heart text-xl" style={{ left: '90%', animationDelay: '1.6s', '--dir': 0.8 }}>💖</span>
+
+                            <button
+                                onClick={handleOpenClick}
+                                className={`smiley-btn relative z-10 bg-brand text-white font-bold text-lg py-4 px-10 rounded-full shadow-[0_0_30px_rgba(251,113,133,0.6)] hover:bg-brand-dark transition-all transform hover:scale-105 ${isMorphing ? 'morphing smiley-wiggle' : ''}`}
+                            >
+                                <span className="btn-text">Buka Sekarang</span>
+                                <div className="smiley-face">
+                                    <div className="smiley-eye left"></div>
+                                    <div className="smiley-eye right"></div>
+                                    <div className="smiley-mouth"></div>
+                                </div>
+                            </button>
+                        </div>
+                        {isMorphing && (
+                            <p className="mt-8 text-brand-light font-handwriting text-2xl animate-pulse">Hehe... siap-siap ya! 😊</p>
+                        )}
+                    </div>
+                );
+            }
+
+            // --- LAYAR UTAMA WEB ---
+            return (
+                <div className="relative w-full overflow-hidden">
+                    <InteractiveThreeBackground />
+                    <ClickSparkles />
+                    <AudioBGM isStarted={isStarted} />
+
+                    {/* Modals */}
+                    <MediaModal item={selectedMedia} onClose={() => setSelectedMedia(null)} />
+                    <LetterModal letter={selectedLetter} onClose={() => setSelectedLetter(null)} />
+
+                    {/* === BAGIAN 1: HERO SECTION === */}
+                    <section className="min-h-[100dvh] flex flex-col items-center justify-center relative pointer-events-none">
+                        <div
+                            className="glass-panel p-10 md:p-16 rounded-[40px] text-center border-t border-l border-white/20 relative z-10 transition-transform duration-200"
+                            style={{
+                                // Efek Parallax pada Card Utama Hero
+                                transform: `translate(${tilt.x * -30}px, ${tilt.y * -30}px)`
+                            }}
+                        >
+                            <h2 className="text-2xl md:text-3xl text-brand-light font-medium mb-2 drop-shadow-md">Selamat Ulang Tahun</h2>
+                            <h1 className="text-[120px] md:text-[180px] font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-brand-light via-brand to-purple-600 leading-none drop-shadow-2xl font-bubble">
+                                26
+                            </h1>
+                            <p className="text-xl md:text-2xl text-gray-200 mt-4 max-w-lg mx-auto font-light">
+                                "Menua bersamamu adalah doa yang selalu mas semogakan."
+                            </p>
+                        </div>
+
+                        <div className="absolute bottom-12 flex flex-col items-center animate-bounce text-gray-400">
+                            <span className="text-sm uppercase tracking-widest mb-2 font-bold">Scroll ke bawah & sentuh memori kita</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"></path></svg>
+                        </div>
+                    </section>
+
+                    {/* === BAGIAN 2: KANVAS MEMORI BERTEBARAN === */}
+                    {/* Responsive canvas height */}
+                    <section className="relative w-full overflow-visible" style={{ minHeight: window.innerWidth <= 768 ? '1800px' : '2500px' }}>
+
+                        {/* Scroll Reveal Quote - muncul saat di-scroll, lalu perlahan ke belakang */}
+                        <ScrollRevealQuote />
+
+                        {/* Render Sticky Notes */}
+                        {initialNotesLayout.map(note => (
+                            <DraggableNote
+                                key={note.id}
+                                text={note.text}
+                                defaultPos={note.initialPos}
+                                defaultRot={note.initialRot}
+                                zIndex={note.zIndex}
+                                bringToFront={() => {
+                                    setHighestZIndex(prev => prev + 1);
+                                    note.zIndex = highestZIndex + 1;
+                                }}
+                                tilt={tilt}
+                            />
+                        ))}
+
+                        {/* Render Polaroids */}
+                        {initialGalleryLayout.map(item => (
+                            <DraggablePolaroid
+                                key={item.id}
+                                item={item}
+                                defaultPos={item.initialPos}
+                                defaultRot={item.initialRot}
+                                zIndex={item.zIndex}
+                                bringToFront={() => {
+                                    setHighestZIndex(prev => prev + 1);
+                                    item.zIndex = highestZIndex + 1;
+                                }}
+                                onClickItem={setSelectedMedia}
+                                tilt={tilt}
+                            />
+                        ))}
+                    </section>
+
+                    {/* === BAGIAN 3: SURAT MELAYANG (ENVELOPES) === */}
+                    <section className="min-h-screen py-20 relative flex flex-col items-center justify-center bg-gradient-to-b from-transparent to-black/80">
+                        <div className="text-center mb-16 relative z-10 px-4">
+                            <h2 className="text-4xl md:text-5xl font-bold text-brand-light mb-4">Kotak Pos Cinta 💌</h2>
+                            <p className="text-xl text-gray-300">Pilih salah satu surat yang mengambang ini</p>
+                        </div>
+
+                        <div className="flex flex-wrap justify-center gap-10 md:gap-20 px-4 relative z-10">
+                            {lettersData.map((letter, index) => (
+                                <FloatingEnvelope
+                                    key={letter.id}
+                                    letter={letter}
+                                    delay={index * 0.5} // Delay agar melayangnya tidak serentak
+                                    onClick={setSelectedLetter}
+                                />
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* === FOOTER === */}
+                    <footer className="py-12 text-center border-t border-white/10 relative z-10 glass-panel bg-black/50">
+                        <div className="flex justify-center mb-4">
+                            <div className="w-2 h-2 rounded-full bg-brand mx-1 animate-ping"></div>
+                            <div className="w-2 h-2 rounded-full bg-brand mx-1 animate-ping" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 rounded-full bg-brand mx-1 animate-ping" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                        <p className="text-gray-300 font-handwriting text-2xl md:text-3xl">Selamat Ulang Tahun ke-26, Sayang.</p>
+                        <p className="text-gray-500 mt-2 text-sm font-sans">Dibuat khusus untukmu oleh Mas. Sayang kamu selamanya.</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
