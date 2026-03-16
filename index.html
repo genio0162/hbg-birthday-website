@@ -389,20 +389,20 @@
         .scroll-reveal-quote {
             position: sticky;
             top: 30vh;
-            z-index: 5;
+            z-index: 50; /* Z-Index tinggi supaya di depan memories */
             opacity: 0;
             transform: translateY(40px) scale(0.95);
             transition: opacity 0.8s ease, transform 0.8s ease;
-            pointer-events: none;
+            pointer-events: auto; /* Bisa diklik untuk efek getar manual */
         }
         .scroll-reveal-quote.visible {
             opacity: 1;
             transform: translateY(0) scale(1);
         }
         .scroll-reveal-quote.behind {
-            z-index: -1;
+            z-index: -1; /* Lenyap tertelan memories */
             opacity: 0.15;
-            transition: opacity 1.5s ease, z-index 0s;
+            transition: opacity 1.5s ease, z-index 0s 1.5s;
         }
 
         /* Envelope Animation */
@@ -608,12 +608,53 @@
             return tilt;
         };
 
+        // Hook untuk mendeteksi goncangan (Shake)
+        const useShake = (onShake) => {
+            useEffect(() => {
+                let lastTime = new Date().getTime();
+                let lastX = null, lastY = null, lastZ = null;
+                const threshold = 15; // Sensitivitas goncangan
+                
+                const handleMotion = (e) => {
+                    const current = e.accelerationIncludingGravity;
+                    if (!current) return;
+                    
+                    const currentTime = new Date().getTime();
+                    if ((currentTime - lastTime) > 100) {
+                        const diffTime = currentTime - lastTime;
+                        lastTime = currentTime;
+                        
+                        const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
+                        if (speed > threshold) {
+                            onShake();
+                        }
+                        lastX = current.x; lastY = current.y; lastZ = current.z;
+                    }
+                };
+                
+                if (window.DeviceMotionEvent) {
+                    window.addEventListener('devicemotion', handleMotion, false);
+                }
+                return () => window.removeEventListener('devicemotion', handleMotion);
+            }, [onShake]);
+        };
+
         // Hook untuk Drag & Drop Elemen di Canvas
-        const useDraggable = (initialPosition, bringToFront) => {
+        const useDraggable = (initialPosition, bringToFront, isOrganized, organizedPos) => {
             const [position, setPosition] = useState(initialPosition);
             const [isDragging, setIsDragging] = useState(false);
             const dragStartRef = useRef({ x: 0, y: 0 });
             const initialPosRef = useRef(initialPosition);
+
+            // Jika mode terorganisir aktif, pindahkan ke posisi rapih
+            useEffect(() => {
+                if (isOrganized && organizedPos) {
+                    setPosition(organizedPos);
+                } else if (!isOrganized) {
+                    // Kembali ke pencar jika dimatikan? (Sifat opsional, kita biarkan saja tetap kalau mau)
+                    // setPosition(initialPosition); 
+                }
+            }, [isOrganized, organizedPos]);
 
             const handlePointerDown = (e) => {
                 setIsDragging(true);
@@ -930,8 +971,8 @@
         };
 
         // Komponen Sticky Note yang bisa di-drag
-        const DraggableNote = ({ text, defaultPos, defaultRot, zIndex, bringToFront, tilt }) => {
-            const { position, isDragging, handlers } = useDraggable(defaultPos, bringToFront);
+        const DraggableNote = ({ text, defaultPos, defaultRot, zIndex, bringToFront, tilt, isOrganized, organizedPos }) => {
+            const { position, isDragging, handlers, transitionStyle } = useDraggable(defaultPos, bringToFront, isOrganized, organizedPos);
 
             // Parallax lebih kuat untuk objek kecil agar terasa dimensi kedalamannya
             const parallaxX = tilt.x * 40;
@@ -940,18 +981,19 @@
             return (
                 <div
                     {...handlers}
-                    className="absolute draggable sticky-note text-xl md:text-2xl text-center flex items-center justify-center transition-transform duration-100 ease-out hover:shadow-xl"
+                    className="absolute draggable sticky-note text-xl md:text-2xl text-center flex items-center justify-center transition-transform hover:shadow-xl"
                     style={{
                         left: position.x,
                         top: position.y,
                         transform: `
-                            translate(${parallaxX}px, ${parallaxY}px)
-                            rotate(${defaultRot}deg) 
+                            translate(${parallaxX}px, ${parallaxY}px) 
+                            rotate(${isOrganized ? 0 : defaultRot}deg) 
                             scale(${isDragging ? 1.1 : 1})
                         `,
-                        zIndex: zIndex,
+                        zIndex: isOrganized ? zIndex + 20 : zIndex,
                         width: window.innerWidth > 768 ? '200px' : '140px',
-                        minHeight: window.innerWidth > 768 ? '150px' : '120px'
+                        minHeight: window.innerWidth > 768 ? '150px' : '120px',
+                        ...transitionStyle
                     }}
                 >
                     <span className="pointer-events-none leading-relaxed">{text}</span>
@@ -1303,7 +1345,7 @@
                         <ScrollRevealQuote />
 
                         {/* Render Sticky Notes */}
-                        {initialNotesLayout.map(note => (
+                        {initialNotesLayout.map((note, index) => (
                             <DraggableNote
                                 key={note.id}
                                 text={note.text}
@@ -1315,11 +1357,16 @@
                                     note.zIndex = highestZIndex + 1;
                                 }}
                                 tilt={tilt}
+                                isOrganized={isOrganized}
+                                organizedPos={{
+                                    x: window.innerWidth / 2 - (window.innerWidth <= 768 ? 140 : 200)/2,
+                                    y: 100 + (index * (window.innerWidth <= 768 ? 160 : 200))
+                                }}
                             />
                         ))}
 
                         {/* Render Polaroids */}
-                        {initialGalleryLayout.map(item => (
+                        {initialGalleryLayout.map((item, index) => (
                             <DraggablePolaroid
                                 key={item.id}
                                 item={item}
@@ -1332,6 +1379,11 @@
                                 }}
                                 onClickItem={setSelectedMedia}
                                 tilt={tilt}
+                                isOrganized={isOrganized}
+                                organizedPos={{
+                                    x: window.innerWidth / 2 - (window.innerWidth <= 768 ? 180 : 260)/2,
+                                    y: 100 + (initialNotesLayout.length * (window.innerWidth <= 768 ? 160 : 200)) + (index * (window.innerWidth <= 768 ? 260 : 350))
+                                }}
                             />
                         ))}
                     </section>
